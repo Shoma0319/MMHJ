@@ -1,0 +1,24 @@
+import os
+directory = "./source/"
+n = 10
+
+os.mkdir(directory)
+
+for i in range(n):
+    fileName = directory + str(i) + ".html"
+    f = open(fileName, "w")
+
+    if i-1>=0: f.write(str(i-1)+".html"+"\n")
+    else: f.write(str(n-1)+".html"+"\n")
+
+    if i+1<n: f.write(str(i+1)+".html"+"\n")
+    else: f.write(str(0)+".html"+"\n")
+
+    for _ in range(2):
+        f.write(str(i)+"\n")
+    
+    for _ in range(2):
+        f.write(str(i+n)+"\n")
+
+    f.write("\n")
+    f.close()

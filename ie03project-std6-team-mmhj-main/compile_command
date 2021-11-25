@@ -1,0 +1,3 @@
+gcc -o [コンパイル後の名前] 「ファイル名] -lsqlite3 -std=c99
+
+例：　gcc -o version version.c -lsqlite3 -std=c99

@@ -1,0 +1,110 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+
+struct averageData{//総合推薦度の値と書籍番号をいれておくための構造体
+    double average;
+    int index;
+};
+
+int cmpfunc(const void *a, const void *b){//総合推薦度を降順にするためのソート
+    if( (((struct averageData*)a)->average > ((struct averageData*)b)->average) ){
+        return 1;
+    } 
+    else if( (((struct averageData*)a)->average < ((struct averageData*)b)->average) ){
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+double * returnUserScores(double **evaluations, int N, int M){
+    double dist[N];//ユーザー１とのdistを入れる配列
+    double userScores[N];//ユーザー１との類似性スコアを入れる配列
+
+    for(int i=0; i<N; i++){
+        for(int j=0; j<M; j++){
+            if(evaluations[0][j]<0 || evaluations[i][j]<0) continue;//ユーザー１が書籍[ｊ]を評価かつユーザー[i]が書籍[j]を評価->dist計算
+            dist[i] += (evaluations[0][j]-evaluations[i][j]) * (evaluations[0][j]-evaluations[i][j]);//ユーザー１とユーザー[i]のdist
+          }
+        userScores[i] = 1/(sqrt(dist[i])+1);//ユーザー１とユーザー[i]の類似性スコア
+    }
+
+    return userScores;
+}
+
+int main(){
+    int N, H;
+    double **evaluations;
+    int *indexes;
+    double average = 0.0;
+    double count = 0;
+    struct averageData *averageDatas; 
+    int printCount = 0;
+    double *userScores;
+
+    scanf("%d", &N);//N ユーザー数
+    scanf("%d", &H);//M 書籍数
+
+    //initialize arrays
+    indexes = (int *)malloc(H*sizeof(int));
+
+    averageDatas = (struct averageData *)malloc(H*sizeof(struct averageData));
+    for(int i=0; i<H; i++){
+        averageDatas[i].average = 0.0;//書籍[i]の総合推薦度の値にとりあえず０をいれておく
+        averageDatas[i].index = i;//書籍[i]の番号を保管(書籍[1]に１をいれておく)
+    }
+
+    evaluations = (double **)malloc(N*sizeof(double *));
+    for(int i=0; i<N; i++){
+        evaluations[i] = (double *)malloc(H*sizeof(double));//ユーザー[i]が書籍[j]にした評価値を入れる配列evaluation[i][j]
+    }
+
+    
+    // read datas
+    for(int i=0; i<N; i++){
+        for(int j=0; j<H; j++){
+            scanf("%lf", &(evaluations[i][j]));//評価値を配列にいれていく
+        }
+    }
+    
+    userScores = (double *)malloc(N*sizeof(double));//ユーザー１との類似性スコアをいれる配列
+    userScores = returnUserScores(evaluations, N, H);
+
+
+    //identify which books should be rated
+    for(int i=0; i<H; i++){//書籍数になるまで
+        if(evaluations[0][i] < 0){//ユーザー１が書籍[j]を評価していないなら
+            indexes[i] = 1;//ユーザー１が書籍[i]を評価していないことを示すための配列　indexesを１にする。
+            printCount++;//ユーザー１が評価していない書籍の数を記録ー＞最後出力の個数を決める際に使う
+        } else {
+            indexes[i] = 0;//ユーザー１がすでに評価済みであることをしめすためのindexes = 0
+        }
+    }
+
+    //calculate averages
+    for(int i=0; i<H; i++) {//書籍数になるまで
+        if(indexes[i] == 1) {//ユーザー１が評価していない書籍なら
+            for(int j=1; j<N; j++) {//ユーザーの数まで
+                if(evaluations[j][i] > 0){//ユーザー[j]が書籍[i]を評価しているなら
+                    average += evaluations[j][i]*userScores[j];//書籍[i]に対して評価しているユーザーの推薦度を足し合わせ
+                    count += userScores[j];//書籍[i]を評価しているユーザーの類似性スコアを足し合わせ
+                }
+            }
+            average /= count;//書籍[i]への総合推薦度
+            averageDatas[i].average = average;//これをaverageData.averageの[i]にいれる
+            average = 0.0;
+            count = 0;
+        }
+    }
+
+    //sort average datas
+    qsort(averageDatas, H, sizeof(struct averageData), cmpfunc);
+
+    // print datas
+    for(int i=H-1; i>=printCount; i--){
+        printf("%d %lf\n", averageDatas[i].index+1, averageDatas[i].average);//printCountの数(ユーザー１が評価していない書籍の数)だけ総合推薦度の高い順にその書籍番号と総合推薦度を表示
+    }
+
+    return 0;
+}

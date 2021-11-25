@@ -1,0 +1,38 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+
+#define N 7
+#define M 7
+
+
+int main(){
+  
+  int i,j;
+  double score;
+  FILE *fp = NULL;
+  
+  srand((unsigned int)time(NULL)); // 現在時刻の情報で初期化
+
+ 
+  fp = fopen("testdata1.txt","w");
+
+  fprintf(fp,"%d %d\n",N,M);
+  for(i = 0; i < N; i++){
+    for(j = 0; j < M; j++){
+        
+      score = rand() % 51;      // 0.0 <= score <= 5.0 または　score = -1
+        
+      if(score >= 10 || score == 0) score = score/10 - 1;
+      else score = -1;
+        
+      fprintf(fp,"%.1f ",score);
+    }
+    fputc('\n',fp);
+  }
+
+  fclose(fp);
+    
+  return 0;
+  
+}

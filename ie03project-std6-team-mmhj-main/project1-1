@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <math.h>
+
+#define MAX 100
+
+int main(){
+
+  int N, M;//N:ユーザーの数,M:書籍の数
+  int i, j, usernum;
+  int user[MAX];
+  double num, dist;//dist:距離
+  double arr[MAX][MAX];//評価を入れる配列
+  double score[MAX];//score:類似性スコア
+  
+
+  /*標準入力*/
+  scanf("%d%d",&N,&M);
+  for(i = 0; i < N; i++){
+    for(j = 0; j < M; j++){
+      scanf("%lf",&arr[i][j]);
+    }
+  }
+
+  /*類似性スコアの計算*/
+  for(j = 1; j < N; j++){
+    dist = 0;
+    for(i = 0; i < M; i++){
+      if( arr[0][i] < 0 || arr[j][i] < 0 )continue;                   //二人とも評価している本を探す
+      dist += (arr[0][i] - arr[j][i] ) * ( arr[0][i] - arr[j][i] );
+    }
+    score[j] = 1/(sqrt(dist)+1);
+    user[j] = j+1;
+  }
+  
+  /*類似性スコアを降順にソート*/
+  for( i = 1; i < N-1; i++ ) {
+    for( j = N-2; j >= i; j-- ) {
+      if( score[j] > score[j+1] ) {
+	usernum = user[j];　
+	user[j] = user[j+1];
+	user[j+1] = usernum;
+	num = score[j];
+	score[j] = score[j+1];
+	score[j+1] = num;
+      }
+    }
+  }
+
+  /*類似性スコアを標準出力*/
+  for(j = N-1; j > 0; j--)printf("%d %f\n",user[j],score[j]);
+    
+  return 0;
+}
+

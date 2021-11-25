@@ -1,0 +1,226 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+#include<string.h>
+
+struct averageData{
+    double average;
+    int index;
+};
+
+void initializeAverageDatas(struct averageData * averageDatas, int M){
+    for(int i=0; i<M; i++){
+        averageDatas[i].average = -1;
+        averageDatas[i].index = i;
+    }
+}
+
+int cmpfunc(const void *a, const void *b){
+    if( (((struct averageData*)a)->average < ((struct averageData*)b)->average) ){
+        return 1;
+    } 
+    else if( (((struct averageData*)a)->average > ((struct averageData*)b)->average) ){
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+double * returnUserScores(double **evaluations, int N, int M, int targetUser){
+    double dist[N];
+    double userScores[N];
+
+    for(int i=0; i<N; i++){
+        for(int j=0; j<M; j++){
+            if(evaluations[targetUser-1][j]<0 || evaluations[i][j]<0) continue;
+            dist[i] += (evaluations[targetUser-1][j]-evaluations[i][j]) * (evaluations[targetUser-1][j]-evaluations[i][j]);
+        }
+        userScores[i] = 1/(sqrt(dist[i])+1);
+    }
+
+    return userScores;
+}
+
+void recommendAndPrintList(double ** evaluations, int targetUserNumber, int *indexes, int M, int N, struct averageData *averageDatas, double* userScores){
+    double sumOfBookScore=0;
+    double sumOfUserScore=0;
+    int printCount=0;
+    userScores = returnUserScores(evaluations, N, M, targetUserNumber);
+
+    //identify which books should be rated
+    for(int i=0; i<M; i++){
+        if(evaluations[targetUserNumber-1][i] < 0){
+            indexes[i] = 1;
+            printCount++;
+        } else {
+            indexes[i] = 0;
+        }
+    }
+
+    //calculate averages
+    for(int i=0; i<M; i++) {
+        if(indexes[i] == 1){
+            for(int j=0; j<N; j++) {
+                if(j == targetUserNumber-1) continue;
+                if(evaluations[j][i] >= 0){
+                    sumOfBookScore += evaluations[j][i]*userScores[j];
+                    sumOfUserScore += userScores[j];
+                }
+            }
+            sumOfBookScore /= sumOfUserScore;
+            averageDatas[i].average = sumOfBookScore;
+            sumOfBookScore = 0.0;
+            sumOfUserScore = 0;
+        }
+    }
+
+    //sort average datas
+    qsort(averageDatas, M, sizeof(struct averageData), cmpfunc);
+
+     // print datas
+    printf("\n");
+    for(int i=0; i<printCount; i++){
+        printf("%d %lf\n", averageDatas[i].index+1, averageDatas[i].average);
+    }
+
+    initializeAverageDatas(averageDatas, M);
+}
+
+void recommend(double ** evaluations, int targetUserNumber, int *indexes, int M, int N, struct averageData *averageDatas, double* userScores, int targetBookNum){
+    double sumOfBookScore=0;
+    double sumOfUserScore=0;
+
+    userScores = returnUserScores(evaluations, N, M, targetUserNumber);
+
+    //identify which books should be rated
+    for(int i=0; i<M; i++){
+        if(evaluations[targetUserNumber-1][i] < 0){
+            indexes[i] = 1;
+        } else {
+            indexes[i] = 0;
+        }
+    }
+
+    //calculate averages
+    for(int i=0; i<M; i++) {
+        if(indexes[i] == 1){
+            for(int j=0; j<N; j++) {
+                if(j == targetUserNumber-1) continue;
+                if(evaluations[j][i] >= 0){
+                    sumOfBookScore += evaluations[j][i]*userScores[j];
+                    sumOfUserScore += userScores[j];
+                }
+            }
+            sumOfBookScore /= sumOfUserScore;
+            averageDatas[i].average = sumOfBookScore;
+            sumOfBookScore = 0.0;
+            sumOfUserScore = 0;
+        }
+    }
+
+    //sort average datas
+    qsort(averageDatas, M, sizeof(struct averageData), cmpfunc);
+
+     // print datas
+    printf("\n");
+    printf("%d %lf\n", averageDatas[targetBookNum-1].index+1, averageDatas[targetBookNum- 1].average);
+
+    initializeAverageDatas(averageDatas, M);
+}
+
+void evaluate(double **evaluations, int userNum, int bookNum, double newEvaluation){
+    if(userNum<=0 || bookNum<=0 || newEvaluation<0 || newEvaluation>5) {
+        printf("invalid input on evaluate\n");
+        return;
+    }
+    evaluations[userNum-1][bookNum-1] = newEvaluation;
+}
+
+int main(){
+    int N, M, E;
+    double **evaluations;
+    int u, b;
+    double p;
+    double sumOfBookScore = 0.0;
+    double sumOfUserScore = 0.0;
+    double *userScores;
+    int *indexes;
+    struct averageData *averageDatas; 
+    int printCount = 0;
+    //project1-4
+    char command[4];
+    char targetUser[10];
+    int targetUserNum = -1;
+    char targetBook[10];
+    int targetBookNum = -1;
+    double newEvaluation = -1;
+    char input[50];
+
+    scanf("%d %d %d", &N, &M, &E);
+
+    //initializing arrays
+    indexes = (int *)malloc(M*sizeof(int));
+
+    evaluations = (double **)malloc(N*sizeof(double *));
+    for(int i=0; i<N; i++){
+        evaluations[i] = (double *)malloc(M*sizeof(double));
+    } 
+
+    for(int i=0; i<N; i++){
+        for(int j=0; j<M; j++){
+            evaluations[i][j] = -1;
+        }
+    }
+
+    averageDatas = (struct averageData *)malloc(M*sizeof(struct averageData));
+    for(int i=0; i<M; i++){
+        averageDatas[i].average = -1;
+        averageDatas[i].index = i;
+    }
+
+    for(int i=0; i<E; i++){
+        scanf("%d %d %lf", &u, &b, &p);
+        evaluations[u-1][b-1] = p;
+    }
+
+    userScores = (double *)malloc(N*sizeof(double));
+
+    //project1-4 section
+    printf("______________\n");
+
+    while(1){
+        scanf("%s", command);
+        strcpy(targetBook, " ");
+        strcpy(targetUser, " ");
+
+        scanf("%[^\n]s", input);
+        sscanf(input, "%s %s %lf", targetUser, targetBook, &newEvaluation);
+        targetUserNum = atoi(targetUser);
+        targetBookNum = atoi(targetBook);
+
+        if(targetUserNum<=0){
+            printf("error\n targetUser num is not correct\n");
+            targetBookNum = -1;
+            targetUserNum = -1;
+            newEvaluation = -1;
+            continue;
+        }
+        
+        if(strcmp(command, "eval")==0){
+            evaluate(evaluations, targetUserNum, targetBookNum, newEvaluation);
+        } else if((strcmp(command, "rec")==0) && targetBookNum>0){
+            recommend(evaluations, targetUserNum, indexes, M, N, averageDatas, userScores, targetBookNum);
+        } else if((strcmp(command, "rec")==0) && targetBookNum<=0) {
+            recommendAndPrintList(evaluations, targetUserNum, indexes, M, N, averageDatas, userScores);
+        } else {
+            printf("invalid command\n");
+        }
+
+        targetBookNum = -1;
+        targetUserNum = -1;
+        newEvaluation = -1;
+    }
+
+    return 0;
+
+}

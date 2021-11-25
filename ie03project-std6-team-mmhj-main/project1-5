@@ -1,0 +1,64 @@
+#include<stdio.h>
+#define MAX 100000
+
+int v[MAX];/*訪問フラグ*/
+int adj[MAX][MAX];/*隣接行列*/
+int N, R, Q;/*N:ユーザーの数　R:友達関係の数 Q:質問の数*/
+int flag;
+
+void visit(int, int);
+
+int main(){
+
+  int i,j,k;
+  int s,t;
+  int p,q;
+
+  /*隣接行列に格納*/
+  scanf("%d%d",&N,&R);
+  for(i = 0;i < R;i++){
+    scanf("%d%d",&s,&t);
+    adj[s-1][t-1] = 1;
+    adj[t-1][s-1] = 1;
+  }
+
+  printf("\n");
+
+  /*隣接行列の表示*/
+  for(s = 0;s < N;s++){
+    for(t = 0;t < N;t++){
+      printf("%d ",adj[s][t]);
+    }
+    printf("\n");
+  }    
+
+  printf("\n");
+  
+  /*深さ優先探索*/
+  scanf("%d",&Q);
+  for(i = 0;i < Q;i++){
+    scanf("%d%d",&p,&q);
+    for(k = 0;k < N;k++)v[k] = 0;
+    flag = 0;
+    visit(p-1,q-1);
+    if(flag == 1)printf("yes\n");
+    else printf("no\n");
+  }
+
+  return 0;
+}
+
+void visit(int i, int j){
+  int k;
+  v[i] = 1;
+  for(k = 0;k < N; k++){
+    if(adj[i][k] == 1 && v[k] == 0){
+      //printf("%d -> %d\n",i+1,k+1);
+      if(k == j){
+	flag = 1;
+	break;
+      }
+      visit(k,j);
+    }
+  }
+}

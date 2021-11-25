@@ -1,0 +1,38 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+#define NMAX 100000
+#define MMAX 100000
+#define EMAX 100000
+#define RMAX 100000
+#define N 1000
+#define M 1000
+int main(){
+  
+  int i, j, eva;
+  int flug;
+  int E = 0, R = 0;
+  int nme[EMAX][3], rel[RMAX][2];
+  
+  srand((unsigned int)time(NULL));
+
+  for(i = 0; i < N; i++){
+    for(j = 0; j < M; j++){
+      eva = rand() % 51 + 1;
+      flug = rand() % 10 + 1;  
+      if(flug >= 4){
+	nme[E][0] = i+1;
+	nme[E][1] = j+1;
+	nme[E][2] = eva;
+	E++;
+      }
+      else continue;     
+    }
+  }
+
+
+  printf("%d %d %d\n",N,M,E);
+  for(i = 0; i < E; i++)printf("%d %d %0.1f\n",nme[i][0],nme[i][1],(double)nme[i][2]/10);
+  return 0;
+  
+}

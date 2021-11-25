@@ -1,0 +1,69 @@
+int main(){
+    int N, M, E;
+    double **evaluations;
+    int u, b;
+    double p;
+    double sumOfBookScore = 0.0;
+    double sumOfUserScore = 0.0;
+    double *userScores;
+    int *indexes;
+    struct averageData *averageDatas; 
+    int printCount = 0;
+    //project1-4
+    char command[4];
+    char targetUser[10];
+    int targetUserNum = -1;
+    char targetBook[10];
+    int targetBookNum = -1;
+    double newEvaluation = -1;
+    char input[50];
+
+    scanf("%d %d %d", &N, &M, &E);
+
+    //initializing arrays
+    indexes = (int *)malloc(M*sizeof(int));
+
+    evaluations = (double **)malloc(N*sizeof(double *));
+    for(int i=0; i<N; i++){
+        evaluations[i] = (double *)malloc(M*sizeof(double));
+    } 
+
+    for(int i=0; i<N; i++){
+        for(int j=0; j<M; j++){
+            evaluations[i][j] = -1;
+        }
+    }
+
+    averageDatas = (struct averageData *)malloc(M*sizeof(struct averageData));
+    for(int i=0; i<M; i++){
+        averageDatas[i].average = -1;
+        averageDatas[i].index = i;
+    }
+
+    for(int i=0; i<E; i++){
+        scanf("%d %d %lf", &u, &b, &p);
+        evaluations[u-1][b-1] = p;
+    }
+
+    userScores = (double *)malloc(N*sizeof(double));
+}
+
+//以下dellする関数
+void deleteUser(double **evaluations, int userNum, int M){
+  int i;
+  for(i = 0; i < M; i++){
+    evaluations[userNum-1][i] = -1;
+  }
+}
+
+void deleteBook(double **evaluations, int bookNum, int N){
+  int i;
+  for(i = 0; i < N; i++){
+    evaluations[i][bookNum-1] = -1;
+  }
+}
+
+void delete(double **adj, int n, int m){
+    adj[n-1][m-1] = 0;
+    adj[m-1][n-1] = 0;
+}

@@ -1,0 +1,159 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+
+#define MAX 100000
+
+int v[MAX];/*訪問フラグ*/
+int adj[MAX][MAX];/*隣接行列*/
+int fri[MAX];/*友達かどうかの情報を入れる配列*/
+
+struct averageData{
+    double average;
+    int index;
+};
+
+int cmpfunc(const void *a, const void *b){
+    if( (((struct averageData*)a)->average < ((struct averageData*)b)->average) ){
+        return 1;
+    } 
+    else if( (((struct averageData*)a)->average > ((struct averageData*)b)->average) ){
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+/*類似性スコアを計算する関数*/
+double * returnUserScores(double **evaluations, int N, int M){
+    double dist[N];
+    double userScores[N];
+
+    for(int i=0; i<N; i++){
+        for(int j=0; j<M; j++){
+            if(evaluations[0][j]<0 || evaluations[i][j]<0) continue;
+            dist[i] += (evaluations[0][j]-evaluations[i][j]) * (evaluations[0][j]-evaluations[i][j]);
+        }
+        userScores[i] = 1/(sqrt(dist[i])+1);
+    }
+
+    return userScores;
+}
+
+/*深さ優先探索の関数*/
+void visit(int i, int n){
+  int j;
+  v[i] = 1;
+  for(j = 0;j < n; j++){
+    if(adj[i][j] == 1 && v[j] == 0){
+      fri[j] = 1;
+      visit(j,n);
+  }
+}
+
+int main(){
+
+    int N, M, E, R;/*N:ユーザーの数、M:書籍の数、E:本の評価、R:友達関係*/
+    double **evaluations;
+    int u, b;
+    int s, t;
+    double p;
+    double sumOfBookScore = 0.0;
+    double sumOfUserScore = 0.0;
+    double *userScores;/*類似性スコア*/
+    int *indexes;
+    struct averageData *averageDatas; 
+    int printCount = 0;
+
+    scanf("%d %d %d", &N, &M, &E);
+
+    //initializing arrays
+    indexes = (int *)malloc(M*sizeof(int));
+
+    evaluations = (double **)malloc(N*sizeof(double *));
+    for(int i=0; i<N; i++){
+        evaluations[i] = (double *)malloc(M*sizeof(double));
+    } 
+
+    for(int i=0; i<N; i++){
+        for(int j=0; j<M; j++){
+            evaluations[i][j] = -1;
+        }
+    }
+
+    averageDatas = (struct averageData *)malloc(M*sizeof(struct averageData));
+    for(int i=0; i<M; i++){
+        averageDatas[i].average = 0.0;
+        averageDatas[i].index = i;
+    }
+
+    // printf("\n");
+    // for(int i=0; i<M; i++){
+    //     printf("%lf\n", averageDatas[i].average);
+    // }
+    // printf("\n");
+
+
+    for(int i=0; i<E; i++){
+        scanf("%d %d %lf", &u, &b, &p);
+        evaluations[u-1][b-1] = p;
+    }
+
+    userScores = (double *)malloc(N*sizeof(double));
+    userScores = returnUserScores(evaluations, N, M);
+
+    
+    /*隣接行列に格納*/
+    scanf("%d",&R);
+    for(int i = 0;i < R;i++){
+      scanf("%d%d",&s,&t);
+      adj[s-1][t-1] = 1;
+      adj[t-1][s-1] = 1;
+    }
+
+    /*友達かどうかの判定*/
+    for(int k = 0;k < N;k++){
+      v[k] = 0;
+      fri[k] = 0;
+    }
+    visit(0,N);
+
+    //identify which books should be rated
+    for(int i=0; i<M; i++){
+        if(evaluations[0][i] < 0){
+            indexes[i] = 1;
+            printCount++;
+        } else {
+            indexes[i] = 0;
+        }
+    }
+
+    //calculate averages
+    for(int i=0; i<M; i++) {
+        if(indexes[i] == 1){
+            for(int j=1; j<N; j++) {
+                if(evaluations[j][i] >= 0 && fri[j] == 1){
+                    sumOfBookScore += evaluations[j][i]*userScores[j];
+                    sumOfUserScore += userScores[j];
+                }
+            }
+            sumOfBookScore /= sumOfUserScore;
+            averageDatas[i].average = sumOfBookScore;
+            sumOfBookScore = 0.0;
+            sumOfUserScore = 0;
+        }
+    }
+
+    //sort average datas
+    qsort(averageDatas, M, sizeof(struct averageData), cmpfunc);
+
+    // print datas
+    printf("\n");
+    for(int i=0; i<printCount; i++){
+        printf("%d %lf\n", averageDatas[i].index+1, averageDatas[i].average);
+    }
+
+    return 0;
+
+}
+

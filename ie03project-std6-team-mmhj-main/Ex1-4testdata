@@ -1,0 +1,51 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+
+#define N 5          // 2 <= M <= 100000
+#define M 6          // 1 <= N <= 100000
+#define E 23         // 0 <= E <= 100000
+
+
+int main(){
+
+  
+  double score;
+  double scoreNM[N][M];
+  int i,j,k = 0;
+  FILE *fp = NULL;
+
+  
+  srand((unsigned int)time(NULL)); // 現在時刻の情報で初期化
+
+  
+  fp = fopen("testdata4.txt","w");  
+
+  
+  for(i = 0; i <  N; i++){
+    for(j = 0; j < M; j++){
+      score = rand() % 52 - 1;     //  -1 <= score <= 50        
+      scoreNM[i][j] = score / 10;  //  -0.1 <= scoreNM[i][j] <= 5.0
+    }
+  }
+
+  
+  fprintf(fp,"%d %d %d\n",N,M,E);
+
+  
+  for(i = 0; i < N ; i++){
+    for(j = 0; j < M; j++ ){
+      if(scoreNM[i][j] >= 0)   fprintf(fp,"%d %d %.1f\n",i+1,rand() % M + 1, scoreNM[i][j]);
+      
+      k++;
+      
+      if(k == E) break;
+    }
+    if(k == E) break;
+  }
+  
+  fclose(fp);
+  
+  return 0;
+}
+ 
